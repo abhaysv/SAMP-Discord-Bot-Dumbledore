@@ -11,12 +11,7 @@ var options = {
 client.on('ready', () => {
 
     console.log('I am ready!');
-    query(options, function (error, response) {
-        if(error)
-            console.log(error)
-        else 
-            console.log(response)
-    })
+
 
 });
 
@@ -37,6 +32,18 @@ client.on('message', message => {
     {
 
         message.reply('Server IP: 51.178.138.254:7777');
+ 
+    }  
+
+    if (message.content === '/serverinfo') 
+    {
+
+        query(options, function (error, response) {
+            if(error)
+                console.log(error)
+            else 
+                message.reply(response)
+        })
  
     }  
 
