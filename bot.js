@@ -4,9 +4,7 @@ const client = new Discord.Client();
 
 var query = require('samp-query')
 
-var options = {
-	host: '51.178.138.254'
-}
+
 
 client.on('ready', () => {
 
@@ -28,22 +26,31 @@ client.on('message', message => {
 
     }
 
-    if (message.content === '/server') 
+    if (message.content === '/ip') 
     {
 
         message.reply('Server IP: 51.178.138.254:7777');
  
     }  
 
-    if (message.content === '/serverinfo') 
+    if (message.content === '/players') 
     {
 
+        var options = {
+            host: '51.178.138.254'
+        }
         query(options, function (error, response) {
             if(error)
                 console.log(error)
-            else 
-                message.reply(response)
+            else
+            {   
+                var str = "Server Info";
+                var value = str.concat(' IP:',response['address'],' Players Online:',response['online'],'/50'); 
+                message.reply(value);
+                console.log(value)
+            }    
         })
+        
  
     }  
 
