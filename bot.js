@@ -14,11 +14,19 @@ client.on('ready', () => {
 
 client.on('message', message => {
 
-    if (message.content === 'ping') {
+    if (message.content === 'dumbledore') 
+    {
 
-       message.reply('pong');
+       message.reply('Hi Im Dumbledore WG Bot');
 
-       }
+    }
+
+    if (message.content === '/server') 
+    {
+
+        message.reply('Server IP: 51.178.138.254:7777');
+ 
+    }  
 
 });
 
