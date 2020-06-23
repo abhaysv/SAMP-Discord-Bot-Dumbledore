@@ -132,23 +132,23 @@ const setApplicationSubmissions = (msg) => {
 
 
 //______________________[ SAMP CMDS]__________________________________
-client.on('message', message => {
+client.on('message', msg => {
 
-    if (message.content === 'dumbledore') 
+    if (msg.content === 'dumbledore') 
     {
 
-       message.reply('Hi Im Dumbledore WG Bot');
+        msg.reply('Hi Im Dumbledore WG Bot');
 
     }
 
-    if (message.content === '/ip') 
+    if (msg.content === '/ip') 
     {
 
-        message.reply('Server IP: 51.178.138.254:7777');
+        msg.reply('Server IP: 51.178.138.254:7777');
  
     }  
 
-    if (message.content === '/players') 
+    if (msg.content === '/players') 
     {
 
         var options = {
@@ -156,12 +156,15 @@ client.on('message', message => {
         }
         query(options, function (error, response) {
             if(error)
+            {
                 console.log(error)
+                msg.reply('Please try again I could not contact the server');
+            }    
             else
             {   
                 var str = "Server Info";
                 var value = str.concat(' IP: ',response['address'],' Players Online: ',response['online'],'/50'); 
-                message.reply(value);
+                msg.reply(value);
                 console.log(value)
             }    
         })
