@@ -1,10 +1,10 @@
 {
 
-  "name": "Example",
+  "name": "Dumbledore WG",
 
   "description": "Example",
 
-  "version": "0.0.0",
+  "version": "1.0.0",
 
   "main": "bot.js",
 
@@ -16,7 +16,7 @@
 
   "dependencies": {
 
-    "discord.js": "11.1.0",
+    "discord.js": "^11.4.2",
 
     "request": "2.81.0",
 
