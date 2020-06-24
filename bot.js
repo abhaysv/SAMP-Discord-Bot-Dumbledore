@@ -158,13 +158,40 @@ client.on('message', msg => {
             if(error)
             {
                 console.log(error)
-                msg.reply('Please try again I could not contact the server');
+                const embedColor = 0xff0000;
+                
+                const logMessage = {
+                    embed: {
+                        title: 'Server Information',
+                        color: embedColor,
+                        fields: [
+                            { name: 'Server IP', value: response['address'], inline: true },
+                            { name: 'Players Online', value: response['online'], inline: true },
+                            { name: 'Max Players', value: '100', inline: true },
+                        ],
+                    }
+                }
+                msg.channel.send(logMessage)
+                
             }    
             else
             {   
                 var str = "Server Info";
                 var value = str.concat(' IP: ',response['address'],' Players Online: ',response['online'],'/50'); 
-                msg.reply(value);
+                const embedColor = 0x00ff00;
+
+                const logMessage = {
+                    embed: {
+                        title: 'Server Information',
+                        color: embedColor,
+                        fields: [
+                            { name: 'Server IP', value: response['address'], inline: true },
+                            { name: 'Players Online', value: response['online'], inline: true },
+                            { name: 'Max Players', value: '100', inline: true },
+                        ],
+                    }
+                }
+                msg.channel.send(logMessage)
                 console.log(value)
             }    
         })
