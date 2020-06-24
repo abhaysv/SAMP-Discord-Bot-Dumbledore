@@ -260,7 +260,11 @@ client.on('message', msg => {
 				break;
 			case "help":
 				msg.reply(`Available commands: \`\`\`${botChar}apply, ${botChar}players, ${botChar}ip, ${botChar}help\`\`\``);
-				break;
+                break;
+            case "ip":
+                break;
+            case "players":
+                break;      
 			default:
 				msg.reply("I do not know this command.");
 		}
