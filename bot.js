@@ -5,7 +5,7 @@ var query = require('samp-query')
 //========= NEW APP SYSTEM =====================================
 let applicationQuestions = require("./application-questions.js");
 
-const botChar = "$";
+const botChar = "/";
 let usersApplicationStatus = [];
 let appNewForm = [];
 let isSettingFormUp = false;
@@ -32,7 +32,6 @@ const applicationFormCompleted = (data) => {
 		answers += `${applicationQuestions[i]}: ${data.answers[i]}\n`;
 	}
 
-    client.channels.get(userToSubmitApplicationsTo).send(`${data.user.username} has submitted a form.\n${answers}`);
     const embedColor = 0xffff00;
 
     const logMessage = {
@@ -40,7 +39,7 @@ const applicationFormCompleted = (data) => {
             title: `WG TAG APPLICATION SUBMISSION ${data.user.username}`,
             color: embedColor,
             fields: [
-                { name: 'Applicant', value: answers, inline: true },
+                { name: 'Application Content', value: answers, inline: true },
             ],
         }
     }
@@ -77,17 +76,20 @@ const sendUserApplyForm = (msg, appName) => {
     {
 		
         if (!user) {
-            msg.author.send(`Application commands: \`\`\`${botChar}cancel, ${botChar}redo\`\`\``);
+            msg.author.send(`Application commands: \`\`\`${botChar}cancel to cancel the app, ${botChar}redo to restart the app process\`\`\``);
             msg.author.send(applicationQuestions[0]);
             usersApplicationStatus.push({id: msg.author.id, currentStep: 0, answers: [], user: msg.author});
-        } else {
+            msg.channel.send(`You Application process is started in DM.`);
+        } else if(applicationQuestions[user.currentStep]) {
             msg.author.send(applicationQuestions[user.currentStep]);
+        } else {
+            msg.channel.send(`You Application is already sumbitted and is under review.`);
         }
 
 	} else if (!msg.guild) {
 		msg.reply("This command can only be used in a guild.");
 	} else {
-		msg.reply("Usage : $apply [Application Type]. \n Application Open are Admin & WG-TAG \n Example Usage: $apply Admin ");
+		msg.reply("Usage : $apply [Application Type]. \n Application Open are WG-TAG \n Example Usage: $apply WG-TAG ");
 	}
     
     
@@ -257,7 +259,7 @@ client.on('message', msg => {
 				setApplicationSubmissions(msg);
 				break;
 			case "help":
-				msg.reply(`Available commands: \`\`\`${botChar}apply, ${botChar}addrole, ${botChar}setup, ${botChar}endsetup, ${botChar}setsubmissions, ${botChar}help\`\`\``);
+				msg.reply(`Available commands: \`\`\`${botChar}apply, ${botChar}players, ${botChar}ip, ${botChar}help\`\`\``);
 				break;
 			default:
 				msg.reply("I do not know this command.");
