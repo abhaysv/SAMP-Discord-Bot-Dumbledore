@@ -9,7 +9,7 @@ const botChar = "/";
 let usersApplicationStatus = [];
 let appNewForm = [];
 let isSettingFormUp = false;
-let userToSubmitApplicationsTo = '706022482783633481';
+let userToSubmitApplicationsTo = '710195458680684695';
 //==================================================================
 
 
@@ -36,7 +36,7 @@ const applicationFormCompleted = (data) => {
 
     const logMessage = {
         embed: {
-            title: `WG TAG APPLICATION SUBMISSION ${data.user.username}`,
+            title: `WG TAG APPLICATION SUBMISSION BY ${data.user.username}`,
             color: embedColor,
             fields: [
                 { name: 'Application Content', value: answers, inline: true },
@@ -55,7 +55,7 @@ const addUserToRole = (msg, roleName) => {
 	if (roleName && msg.guild) {
 		const role = msg.guild.roles.find("name", roleName);
 
-		if (role) {
+		if (!role) {
 			msg.member.addRole(role);
 
 			msg.reply(`Added you to role: '${roleName}'`);
