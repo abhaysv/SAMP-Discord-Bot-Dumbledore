@@ -9,7 +9,7 @@ const botChar = "$";
 let usersApplicationStatus = [];
 let appNewForm = [];
 let isSettingFormUp = false;
-let userToSubmitApplicationsTo = null;
+let userToSubmitApplicationsTo = '706022482783633481';
 //==================================================================
 
 
@@ -32,7 +32,19 @@ const applicationFormCompleted = (data) => {
 		answers += `${applicationQuestions[i]}: ${data.answers[i]}\n`;
 	}
 
-	userToSubmitApplicationsTo.send(`${data.user.username} has submitted a form.\n${answers}`);
+    client.channels.get(userToSubmitApplicationsTo).send(`${data.user.username} has submitted a form.\n${answers}`);
+    const embedColor = 0xffff00;
+
+    const logMessage = {
+        embed: {
+            title: `WG TAG APPLICATION SUBMISSION ${data.user.username}`,
+            color: embedColor,
+            fields: [
+                { name: 'Applicant', value: answers, inline: true },
+            ],
+        }
+    }
+    client.channels.get(userToSubmitApplicationsTo).send(logMessage);
 };
 
 const addUserToRole = (msg, roleName) => {
