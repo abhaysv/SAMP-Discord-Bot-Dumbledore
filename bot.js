@@ -162,12 +162,10 @@ client.on('message', msg => {
                 
                 const logMessage = {
                     embed: {
-                        title: 'Server Information',
+                        title: 'I wasent expecting that , Please try again later',
                         color: embedColor,
                         fields: [
-                            { name: 'Server IP', value: response['address'], inline: true },
-                            { name: 'Players Online', value: response['online'], inline: true },
-                            { name: 'Max Players', value: '100', inline: true },
+                            { name: 'Error:', value: error, inline: true },
                         ],
                     }
                 }
