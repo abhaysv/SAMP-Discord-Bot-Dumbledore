@@ -70,16 +70,28 @@ const addUserToRole = (msg, roleName) => {
 	}
 };
 
-const sendUserApplyForm = msg => {
+const sendUserApplyForm = (msg, appName) => {
 	const user = usersApplicationStatus.find(user => user.id === msg.author.id);
 
-	if (!user) {
-		msg.author.send(`Application commands: \`\`\`${botChar}cancel, ${botChar}redo\`\`\``);
-		msg.author.send(applicationQuestions[0]);
-		usersApplicationStatus.push({id: msg.author.id, currentStep: 0, answers: [], user: msg.author});
+    if (appName && msg.guild) 
+    {
+		
+        if (!user) {
+            msg.author.send(`Application commands: \`\`\`${botChar}cancel, ${botChar}redo\`\`\``);
+            msg.author.send(applicationQuestions[0]);
+            usersApplicationStatus.push({id: msg.author.id, currentStep: 0, answers: [], user: msg.author});
+        } else {
+            msg.author.send(applicationQuestions[user.currentStep]);
+        }
+
+	} else if (!msg.guild) {
+		msg.reply("This command can only be used in a guild.");
 	} else {
-		msg.author.send(applicationQuestions[user.currentStep]);
+		msg.reply("Usage : $apply [Application Type]. \n Application Open are Admin & WG-TAG \n Example Usage: $apply Admin ");
 	}
+    
+    
+
 };
 
 const cancelUserApplicationForm = (msg, isRedo = false) => {
@@ -223,7 +235,7 @@ client.on('message', msg => {
 
 		switch (command.toLowerCase()) {
 			case "apply":
-				sendUserApplyForm(msg);
+				sendUserApplyForm(msg, parameters.join(" "));
 				break;
 			case "addrole":
 				addUserToRole(msg, parameters.join(" "));
