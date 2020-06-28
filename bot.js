@@ -1,8 +1,10 @@
 //============== ORIGINAL SAMP STUFF =======================
 const Discord = require('discord.js');
 const client = new Discord.Client();
-var query = require('samp-query')
+var query = require('samp-query');
+
 //========= NEW APP SYSTEM =====================================
+//@audit Settings
 let applicationQuestions = require("./application-questions.js");
 
 const botChar = "/";
@@ -10,18 +12,134 @@ let usersApplicationStatus = [];
 let appNewForm = [];
 let isSettingFormUp = false;
 let userToSubmitApplicationsTo = '710195458680684695';
+let reportChannelID = '714432112031170562';
+//==================== SAMP MYSQL ==================================
+const mysql = require("mysql");
+var db = mysql.createConnection({
+    host: process.env.SQL_HOST,
+    user: process.env.SQL_USER,
+    password: process.env.SQL_PASS,
+    database: "test",
+});
+
+var last_report = 0;
 //==================================================================
 
 
+
 //========================  BOT WORKER INITIATD ==================
+//@audit-ok Client Ready
 client.on('ready', () => {
 
     console.log('Dumbledore Woke Up from sleep!');
-    console.log(`Logged in as ${client.user.tag}!`);
+	console.log(`Logged in as ${client.user.tag}!`);
+	setTimeout(getLastReportId, 1000);
+	setInterval(ReportSync, 20000);
+	
 
 });
 
 //==================================================================
+
+//________________________[SAMP GAME BOT]_____________________________
+function getLastReportId()
+{
+    db.query("SELECT * FROM `log_reports` ORDER BY `log_reports`.`id` DESC LIMIT 1",
+     [], function(err,row) {
+		if(row)
+		{ 
+			last_report = parseInt(row[0].id);
+			console.log(`[DEBUG]Last Report id:${last_report}`);
+		}
+		else 
+			console.log(`[DEBUG]SQL Error(GetLastReportId):${err}`);
+	
+	});
+
+}
+function ReportSync()
+{
+    db.query(`SELECT * FROM log_reports WHERE id > ${last_report}`,
+     [], function(err,row) {
+		if(row)
+		{ 
+			for (var i = 0; i < row.length; i++) 
+			{
+				last_report = parseInt(row[i].id);
+				const embedColor = 0xff0000;
+			
+				const logMessage = {
+					embed: {
+						title: row[i].report,
+						color: embedColor,
+						fields: [
+							{ name: 'Time:', value: row[i].time, inline: true },
+						],
+					}
+				};
+				client.channels.get(reportChannelID).send(logMessage);
+			
+			}
+			//if(!row.length)
+			//console.log(`[DEBUG] No New Reports Found Using ${last_report}`)
+		}
+		else 
+			console.log(`[DEBUG]SQL Error(GetLastReportId):${err}`);
+	
+	});
+
+}
+
+function GetPlayersOnline(msg) 
+{
+	var options = {
+		host: '51.178.138.254'
+	}
+	query(options, function (error, response) {
+		if(error)
+		{
+			console.log(error)
+			const embedColor = 0xff0000;
+			
+			const logMessage = {
+				embed: {
+					title: 'I wasent expecting that , Please try again later',
+					color: embedColor,
+					fields: [
+						{ name: 'Error:', value: error, inline: true },
+					],
+				}
+			}
+			msg.channel.send(logMessage)
+			
+		}    
+		else
+		{   
+			var str = "Server Info";
+			var value = str.concat(' IP: ',response['address'],' Players Online: ',response['online'],'/50'); 
+			const embedColor = 0x00ff00;
+
+			const logMessage = {
+				embed: {
+					title: 'Server Information',
+					color: embedColor,
+					fields: [
+						{ name: 'Server IP', value: response['address'], inline: true },
+						{ name: 'Players Online', value: response['online'], inline: true },
+						{ name: 'Max Players', value: '100', inline: true },
+					],
+				}
+			}
+			msg.channel.send(logMessage)
+			console.log(value)
+		}    
+	})
+
+}
+
+
+
+
 
 //_____________________[APP SYSTEM]_____________________________________
 
@@ -95,7 +213,7 @@ const sendUserApplyForm = (msg, appName) => {
     
 
 };
-
+//@tsd
 const cancelUserApplicationForm = (msg, isRedo = false) => {
 	const user = usersApplicationStatus.find(user => user.id === msg.author.id);
 
@@ -173,55 +291,6 @@ client.on('message', msg => {
         msg.reply('Server IP: 51.178.138.254:7777');
  
     }  
-
-    if (msg.content === '/players') 
-    {
-
-        var options = {
-            host: '51.178.138.254'
-        }
-        query(options, function (error, response) {
-            if(error)
-            {
-                console.log(error)
-                const embedColor = 0xff0000;
-                
-                const logMessage = {
-                    embed: {
-                        title: 'I wasent expecting that , Please try again later',
-                        color: embedColor,
-                        fields: [
-                            { name: 'Error:', value: error, inline: true },
-                        ],
-                    }
-                }
-                msg.channel.send(logMessage)
-                
-            }    
-            else
-            {   
-                var str = "Server Info";
-                var value = str.concat(' IP: ',response['address'],' Players Online: ',response['online'],'/50'); 
-                const embedColor = 0x00ff00;
-
-                const logMessage = {
-                    embed: {
-                        title: 'Server Information',
-                        color: embedColor,
-                        fields: [
-                            { name: 'Server IP', value: response['address'], inline: true },
-                            { name: 'Players Online', value: response['online'], inline: true },
-                            { name: 'Max Players', value: '100', inline: true },
-                        ],
-                    }
-                }
-                msg.channel.send(logMessage)
-                console.log(value)
-            }    
-        })
-        
- 
-    }
     //------------------------------[APPLICATION STUFF]-------------------------------------------
     if (msg.content.charAt(0) === botChar) {
 		const request = msg.content.substr(1);
@@ -239,8 +308,8 @@ client.on('message', msg => {
 			case "apply":
 				sendUserApplyForm(msg, parameters.join(" "));
 				break;
-			case "addrole":
-				addUserToRole(msg, parameters.join(" "));
+			case "players":
+				GetPlayersOnline(msg);
 				break;
 			case "cancel":
 				cancelUserApplicationForm(msg);
