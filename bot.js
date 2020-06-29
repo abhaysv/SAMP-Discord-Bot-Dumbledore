@@ -137,6 +137,54 @@ function GetPlayersOnline(msg)
 
 }
 
+function sBAN(msg,params)
+{
+	if (params && msg.guild) 
+    {
+		var sqlq;
+		if(!isNaN(params))
+			sqlq = `SELECT * FROM banlog WHERE name = '${params}' OR id = '${params}' LIMIT 1`;
+		else sqlq = `SELECT * FROM banlog WHERE name = '${params}' LIMIT 1`;
+
+		db.query(sqlq,
+		[], function(err,row) {
+		   if(row)
+		   { 	
+				console.log(sqlq);
+				if(row.length)
+				{
+					console.log(`[DEBUG]Last Report id:${parseInt(row[0].id)}`);
+					const embedColor = 0xffff00;
+					const date = new Date(row[0].bantime * 1000);
+					const logMessage = {
+						embed: {
+							title: `Active Ban Forund on Account ${row[0].name}`,
+							color: embedColor,
+							fields: [
+								{ name: 'Ban ID', value: row[0].id, inline: true },
+								{ name: 'Admin', value: row[0].admin, inline: true },
+								{ name: 'Reason', value: row[0].reason, inline: true },
+								{ name: 'Expiry(EPOCH)', value: date, inline: true },
+							],
+						}
+					}
+					client.channels.get(adminCmdsChannelID).send(logMessage);
+				}
+				else
+				client.channels.get(adminCmdsChannelID).send("No ban found !!!");   
+		   }
+		   else 
+			   console.log(`[DEBUG]SQL Error(sBAN):${err}`);
+	   
+	   	});
+  
+	} else if (!msg.guild) {
+		msg.reply("This command can only be used in a guild.");
+	} else {
+		msg.reply("Usage : /sban [BAN-ID/InGame-Name].");
+	}
+	
+}
 
 
 
@@ -329,7 +377,10 @@ client.on('message', msg => {
 				break;
 			case "help":
 				msg.reply(`Available commands: \`\`\`${botChar}apply, ${botChar}players, ${botChar}ip, ${botChar}help\`\`\``);
-                break;
+				break;
+			case "sban":
+				sBAN(msg, parameters.join(" "));
+				break; 
             case "ip":
                 break;
             case "players":
