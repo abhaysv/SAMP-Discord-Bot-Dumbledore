@@ -13,6 +13,7 @@ let appNewForm = [];
 let isSettingFormUp = false;
 let userToSubmitApplicationsTo = '710195458680684695';
 let reportChannelID = '714432112031170562';
+let adminCmdsChannelID = '710195250911641741';
 //==================== SAMP MYSQL ==================================
 const mysql = require("mysql");
 var db = mysql.createConnection({
