@@ -49,7 +49,7 @@
 ---
 
 ## Deployment 📝
-Procfile has already been set up for deployment in Heroku.
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 ---
 
