@@ -16,13 +16,14 @@ var query = require('samp-query');
 //@audit Settings
 
 const botChar = "/"; // Bot prefix character
-const Samp_IP = "51.178.138.254:7777";
-const Community_Tag ="WG";
+let Samp_IP = "51.178.138.254";
+let Samp_Port = 7777;
+let Community_Tag ="WG";
 
 let userToSubmitApplicationsTo = '710195458680684695';//Default Channel Id for User Applications
 let reportChannelID = '714432112031170562'; // Channel for the ingam reports
 let adminCmdsChannelID = '710195250911641741'; // Admin Cmds channel
-let Bot_debug_mode = true;
+let Bot_debug_mode = false;
 
 //_______________________________[APPLICATIONS]______________________________________________
 let applicationQuestions = require("./application-questions.js"); //This .js file has the default questions
@@ -54,6 +55,7 @@ client.on('ready', () => {
 
 
 //________________________[Inagme Report Sync]_____________________________
+//@audit-info Report Sys
 var last_report = 0;
 function getLastReportId()
 {
@@ -107,8 +109,10 @@ function ReportSync()
 function GetPlayersOnline(msg) 
 {
 	var options = {
-		host: '51.178.138.254'
+		host: Samp_IP,
+		port: Samp_Port
 	}
+	//console.log(options.host)
 	query(options, function (error, response) {
 		if(error)
 		{
@@ -154,7 +158,8 @@ function GetPlayersOnline(msg)
 //@audit-info BAN Functions
 function sBAN(msg,params)
 {
-	if (params && msg.guild) 
+	permcheck = (msg.channel.id === adminCmdsChannelID) ? true : false;
+	if (params && permcheck) 
     {
 		var sqlq;
 		if(!isNaN(params))
@@ -194,8 +199,8 @@ function sBAN(msg,params)
 	   
 	   	});
   
-	} else if (!msg.guild) {
-		msg.reply("This command can only be used in a guild.");
+	} else if (!permcheck) {
+		msg.reply("This command can only be used the admin bot channel.");
 	} else {
 		msg.channel.send("Usage : /sban [BAN-ID/InGame-Name].");
 	}
@@ -204,7 +209,8 @@ function sBAN(msg,params)
 
 function uBAN(msg,params)
 {
-	if (params && msg.guild) 
+	permcheck = (msg.channel.id === adminCmdsChannelID) ? true : false;
+	if (params && permcheck) 
     {
 		var sqlq;
 		if(!isNaN(params))
@@ -231,8 +237,8 @@ function uBAN(msg,params)
 	   
 	   	});
   
-	} else if (!msg.guild) {
-		msg.reply("This command can only be used in a guild.");
+	} else if (!permcheck) {
+		msg.reply("This command can only be used the admin bot channel.");
 	} else {
 		msg.channel.send("Usage : /unban [BAN-ID/InGame-Name].");
 	}
@@ -377,6 +383,50 @@ const endApplicationFormSetup = (msg) => {
 	applicationQuestions = appNewForm;
 };
 
+
+//______________________[APP-SYS END]___________________________________
+
+//_______________________[GENERAL UTILITY CMDS]______________________________
+//@audit-info Utility Cmds
+const Clear_Messages = (msg,amount) => {
+
+	if (!msg.guild) return msg.reply("This command can only be used in a guild.");
+
+	if (!amount) return msg.channel.send("Usage: /clear [no of messages to clear]");
+	
+	if (isNaN(amount)) return msg.reply('The amount parameter isn`t a number!'); 
+
+	if (amount > 100) return msg.reply('You can`t delete more than 100 messages at once!'); 
+	if (amount < 1) return msg.reply('You have to delete at least 1 message!'); 
+
+
+	if (!msg.channel.permissionsFor(msg.author).hasPermission("MANAGE_MESSAGES")) 
+	{
+        msg.channel.sendMessage("Sorry, you don't have the permission to execute the command \""+msg.content+"\"");
+        return;
+	} else if (!msg.channel.permissionsFor(client.user).hasPermission("MANAGE_MESSAGES")) 
+	{
+        msg.channel.sendMessage("Sorry, I don't have the permission to execute the command \""+msg.content+"\"");
+        return;
+    }
+
+    
+    if (msg.channel.type == 'text') {
+        msg.channel.fetchMessages({limit : amount})
+          .then(messages => {
+            msg.channel.bulkDelete(messages);
+            messagesDeleted = messages.array().length;
+
+            msg.channel.sendMessage("Deletion of messages successful. Total messages deleted: "+messagesDeleted);
+            console.log('Deletion of messages successful. Total messages deleted: '+messagesDeleted)
+          })
+          .catch(err => {
+            console.log('Error while doing Bulk Delete');
+            console.log(err);
+        });
+    }
+	msg.channel.send(`No of messaes deleted ${amount}`)
+};
 const setChannel = (msg,param) => {
 	if (!msg.guild) 
 	{
@@ -386,7 +436,7 @@ const setChannel = (msg,param) => {
 
 	if (!msg.member.roles.find("name", "Admin")) 
 	{
-		msg.reply("Only admins can do this.")
+		msg.reply("Only Members with Role **Admin** can do this.")
 		return;
 	}
 
@@ -412,53 +462,81 @@ const setChannel = (msg,param) => {
 	msg.channel.send("Admins can now use this channel for admin cmds.")
 	}
 };
-
-//______________________[APP-SYS END]___________________________________
-
-//_______________________[GENERAL UTILITY CMDS]______________________________
-
-const Clear_Messages = (msg,amount) => {
-
-	if (!msg.guild) return msg.reply("This command can only be used in a guild.");
-
-	if (!msg.member.roles.find("name", "Admin")) return msg.channel.send("This command can only be used by an admin.");
-
-	if (!amount) return msg.channel.send("Usage: /clear [no of messages to clear]");
-	
-	if (isNaN(amount)) return msg.reply('The amount parameter isn`t a number!'); 
-
-	if (amount > 100) return msg.reply('You can`t delete more than 100 messages at once!'); 
-	if (amount < 1) return msg.reply('You have to delete at least 1 message!'); 
-
-
-	if (!msg.channel.permissionsFor(msg.author).hasPermission("MANAGE_MESSAGES")) 
+const setSampIP = (msg,param) => {
+	if (!msg.guild) 
 	{
-        msg.channel.sendMessage("Sorry, you don't have the permission to execute the command \""+msg.content+"\"");
-        return;
-	} else if (!msg.channel.permissionsFor(client.user).hasPermission("MANAGE_MESSAGES")) 
+		msg.reply("This command can only be used in a guild.");
+		return;
+	}
+
+	if (!msg.member.roles.find("name", "Admin")) 
 	{
-        msg.channel.sendMessage("Sorry, I don't have the permission to execute the command \""+msg.content+"\"");
-        return;
-    }
+		msg.reply("Only Members with Role **Admin** can do this.")
+		return;
+	}
 
-    
-    if (msg.channel.type == 'text') {
-        msg.channel.fetchMessages({limit : amount})
-          .then(messages => {
-            msg.channel.bulkDelete(messages);
-            messagesDeleted = messages.array().length; // number of messages deleted
+	if(!param)
+	{
+		msg.channel.send("Usage: /setip [ip without port] \n Example: /setip 127.0.0.1")
+		return;
+	}
 
-            // Logging the number of messages deleted on both the channel and console.
-            msg.channel.sendMessage("Deletion of messages successful. Total messages deleted: "+messagesDeleted);
-            console.log('Deletion of messages successful. Total messages deleted: '+messagesDeleted)
-          })
-          .catch(err => {
-            console.log('Error while doing Bulk Delete');
-            console.log(err);
-        });
-    }
-	msg.channel.send(`No of messaes deleted ${amount}`)
+	Samp_IP = param;
+	msg.channel.send(`Server IP Set To : ${Samp_IP}`);
+
 };
+const setSampPort = (msg,param) => {
+	if (!msg.guild) 
+	{
+		msg.reply("This command can only be used in a guild.");
+		return;
+	}
+
+	if (!msg.member.roles.find("name", "Admin")) 
+	{
+		msg.reply("Only Members with Role **Admin** can do this.")
+		return;
+	}
+
+	if(!param)
+	{
+		msg.channel.send("Usage: /setport [port] \n Example: /setport 7777")
+		return;
+	}
+	if(!isNaN(param))
+	{
+		Samp_Port = Number(param);
+		msg.channel.send(`Server Port Set To : ${Samp_Port}`);
+	}	
+	
+
+};
+const helpinfo = (msg) => {
+	if (!msg.guild) 
+	{
+		msg.reply("This command can only be used in a guild.");
+		return;
+	}
+	const embedColor = 0xffff00;
+	pcmds = `\`\`\`${botChar}apply, ${botChar}players, ${botChar}ip, ${botChar}help\`\`\``;
+	acmds = `\`\`\`${botChar}setip, ${botChar}setport, ${botChar}setchannel, ${botChar}setup, ${botChar}sban, ${botChar}unban, ${botChar}clear\`\`\``;
+
+    const logMessage = {
+        embed: {
+            title: `Discord Bot DumbleDore Help Info`,
+            color: embedColor,
+            fields: [
+				{ name: 'Player Cmds', value: pcmds, inline: true },
+				{ name: 'Admin Cmds', value: acmds, inline: true },
+            ],
+        }
+    }
+
+	msg.channel.send(logMessage);
+
+};
+
+
 //______________________[COMMAND PROCESSOR]__________________________________
 //@audit-ok Commands
 
@@ -515,7 +593,7 @@ client.on('message', msg => {
 				setChannel(msg, parameters.join(" "));
 				break;
 			case "help":
-				msg.channel.send(`Available commands: \`\`\`${botChar}apply, ${botChar}players, ${botChar}ip, ${botChar}help\`\`\``);
+				helpinfo(msg);
 				break;
 			case "sban":
 				sBAN(msg, parameters.join(" "));
@@ -525,7 +603,13 @@ client.on('message', msg => {
 				break; 
 			case "clear":
 					Clear_Messages(msg, parameters.join(" "));
-					break; 	
+					break;
+			case "setip":
+					setSampIP(msg, parameters.join(" "))
+					break;
+			case "setport":
+					setSampPort(msg, parameters.join(" "))
+					break;		 	
             case "ip":
                 break;
             case "players":

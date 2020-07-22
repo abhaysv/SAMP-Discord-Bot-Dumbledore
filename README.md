@@ -43,8 +43,18 @@
 -A CMD to reply with the server IP<br />
 -It has a feature similar to the application-bot where it can initiate Applications in DM. (/apply) [ This feature will be refined in future versions]<br />
 -It can search for bans (/sban) , it has an example implementation you will need to edit the SQL accordingly.<br />
+-It can revoke the bans (/unbanban) , it has an example implementation you will need to edit the SQL accordingly.<br />
 -Logging feature for things like reports, it has an example implementation you will need to edit the SQL accordingly.<br />
--A command processor which will allow you to change the bot cmd character.
+-A command processor which will allow you to change the bot cmd character.<br />
+-Utlity cmd /clear to clear messages in bulk.<br />
+-Supports On the fly configuration  changes. 
+-
+
+---
+## Initial Setup. 📝
+-You can directly depoy this bot with a free Dyno offered by Heroku. Just signup for a free acc at heroku and click the Deploy button.<br />
+-For a detailed tutorial click here.
+-
 
 ---
 
