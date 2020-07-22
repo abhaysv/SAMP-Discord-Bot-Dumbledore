@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/abhaysv/SAMP-Discord-Bot-Dumbledore.svg?branch=master)](https://travis-ci.com/abhaysv/SAMP-Discord-Bot-Dumbledore)
+
 SAMP Discord Bot with some basic functionality.
 <br /><br />
 -You can query SAMP server you can query samp servers and display the no of players. (/players)<br />
