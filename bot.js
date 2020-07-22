@@ -1,34 +1,46 @@
-//============== ORIGINAL SAMP STUFF =======================
+//======================================================================================
+/*
+	This is a Dicord Bot for SAMP Servers written in Node.js
+	Bot Version: 2.1
+	Author: Abhay SV Aka DuskFawn Aka Perfectboy. 
+*/
+//=======================================================================================
+
+//______________________[Discord JS and SAMP Query Library]______________________________
 const Discord = require('discord.js');
 const client = new Discord.Client();
+
 var query = require('samp-query');
 
-//========= NEW APP SYSTEM =====================================
+//_____________________________[BOT Configuration]_________________________________________
 //@audit Settings
-let applicationQuestions = require("./application-questions.js");
 
-const botChar = "/";
+const botChar = "/"; // Bot prefix character
+const Samp_IP = "51.178.138.254:7777";
+const Community_Tag ="WG";
+
+let userToSubmitApplicationsTo = '710195458680684695';//Default Channel Id for User Applications
+let reportChannelID = '714432112031170562'; // Channel for the ingam reports
+let adminCmdsChannelID = '710195250911641741'; // Admin Cmds channel
+let Bot_debug_mode = true;
+
+//_______________________________[APPLICATIONS]______________________________________________
+let applicationQuestions = require("./application-questions.js"); //This .js file has the default questions
 let usersApplicationStatus = [];
 let appNewForm = [];
 let isSettingFormUp = false;
-let userToSubmitApplicationsTo = '710195458680684695';
-let reportChannelID = '714432112031170562';
-let adminCmdsChannelID = '710195250911641741';
-//==================== SAMP MYSQL ==================================
+
+//______________________________[SAMP Server MySQL Connection]________________________________
 const mysql = require("mysql");
 var db = mysql.createConnection({
     host: process.env.SQL_HOST,
     user: process.env.SQL_USER,
     password: process.env.SQL_PASS,
-    database: "wg",
+    database: process.env.SQL_DB,
 });
 
-var last_report = 0;
-//==================================================================
 
-
-
-//========================  BOT WORKER INITIATD ==================
+//_______________________________[BOT Startup]_________________________________________________
 //@audit-ok Client Ready
 client.on('ready', () => {
 
@@ -40,9 +52,9 @@ client.on('ready', () => {
 
 });
 
-//==================================================================
 
-//________________________[SAMP GAME BOT]_____________________________
+//________________________[Inagme Report Sync]_____________________________
+var last_report = 0;
 function getLastReportId()
 {
     db.query("SELECT * FROM `log_reports` ORDER BY `log_reports`.`id` DESC LIMIT 1",
@@ -50,10 +62,11 @@ function getLastReportId()
 		if(row)
 		{ 
 			last_report = parseInt(row[0].id);
-			console.log(`[DEBUG]Last Report id:${last_report}`);
+			if(Bot_debug_mode)
+				console.log(`[DEBUG]Last Report id:${last_report}`);
 		}
 		else 
-			console.log(`[DEBUG]SQL Error(GetLastReportId):${err}`);
+			console.log(`[ERROR]SQL Error(GetLastReportId):${err}`);
 	
 	});
 
@@ -81,16 +94,16 @@ function ReportSync()
 				client.channels.get(reportChannelID).send(logMessage);
 			
 			}
-			//if(!row.length)
-			//console.log(`[DEBUG] No New Reports Found Using ${last_report}`)
+			if(!row.length && Bot_debug_mode)
+				console.log(`[DEBUG] No New Reports Found Using ${last_report}`)
 		}
 		else 
-			console.log(`[DEBUG]SQL Error(GetLastReportId):${err}`);
+			console.log(`[ERROR]SQL Error(GetLastReportId):${err}`);
 	
 	});
 
 }
-
+//________________________[Inagme Functions]_____________________________
 function GetPlayersOnline(msg) 
 {
 	var options = {
@@ -132,12 +145,13 @@ function GetPlayersOnline(msg)
 				}
 			}
 			msg.channel.send(logMessage)
-			console.log(value)
+			if(Bot_debug_mode)
+				console.log(value)
 		}    
 	})
 
 }
-
+//@audit-info BAN Functions
 function sBAN(msg,params)
 {
 	if (params && msg.guild) 
@@ -150,11 +164,12 @@ function sBAN(msg,params)
 		db.query(sqlq,
 		[], function(err,row) {
 		   if(row)
-		   { 	
-				console.log(sqlq);
+		   { 	if(Bot_debug_mode)
+					console.log(sqlq);
 				if(row.length)
 				{
-					console.log(`[DEBUG]Last Report id:${parseInt(row[0].id)}`);
+					if(Bot_debug_mode)
+						console.log(`[DEBUG]Ban ID:${parseInt(row[0].id)}`);
 					const embedColor = 0xffff00;
 					const date = new Date(row[0].bantime * 1000);
 					const logMessage = {
@@ -175,22 +190,78 @@ function sBAN(msg,params)
 				client.channels.get(adminCmdsChannelID).send("No ban found !!!");   
 		   }
 		   else 
-			   console.log(`[DEBUG]SQL Error(sBAN):${err}`);
+			   console.log(`[ERROR]SQL Error(sBAN):${err}`);
 	   
 	   	});
   
 	} else if (!msg.guild) {
 		msg.reply("This command can only be used in a guild.");
 	} else {
-		msg.reply("Usage : /sban [BAN-ID/InGame-Name].");
+		msg.channel.send("Usage : /sban [BAN-ID/InGame-Name].");
 	}
 	
 }
 
+function uBAN(msg,params)
+{
+	if (params && msg.guild) 
+    {
+		var sqlq;
+		if(!isNaN(params))
+			sqlq = `SELECT * FROM banlog WHERE name = '${params}' OR id = '${params}' LIMIT 1`;
+		else sqlq = `SELECT * FROM banlog WHERE name = '${params}' LIMIT 1`;
+
+		db.query(sqlq,
+		[], function(err,row) {
+		   if(row)
+		   { 	if(Bot_debug_mode)
+					console.log(sqlq);
+				if(row.length)
+				{
+					if(Bot_debug_mode)
+						console.log(`[DEBUG]BAN id:${parseInt(row[0].id)}`);
+					uBAN_Process(row[0].id)
+					
+				}
+				else
+				client.channels.get(adminCmdsChannelID).send("No ban found !!!");   
+		   }
+		   else 
+			   console.log(`[ERROR]SQL Error(uBAN):${err}`);
+	   
+	   	});
+  
+	} else if (!msg.guild) {
+		msg.reply("This command can only be used in a guild.");
+	} else {
+		msg.channel.send("Usage : /unban [BAN-ID/InGame-Name].");
+	}
+	
+}
+function uBAN_Process(banid)
+{
+
+	var sqlq;
+	sqlq = `DELETE FROM banlog WHERE id = '${banid}'`;
+		
+	db.query(sqlq,
+	[], function(err,row) {
+		if(row)
+		{ 	
+			if(Bot_debug_mode)
+				console.log(sqlq);
+			client.channels.get(adminCmdsChannelID).send(`The user has been unbanned`); 
+		}
+		else 
+			console.log(`[ERROR]SQL Error(uBAN_Process):${err}`);
+	   
+	});
+  
+	
+}
 
 
-
-//_____________________[APP SYSTEM]_____________________________________
+//_____________________[APPLICATION SYSTEM FUCNTIONS]_____________________________________
 
 const applicationFormCompleted = (data) => {
 	let i = 0, answers = "";
@@ -203,7 +274,7 @@ const applicationFormCompleted = (data) => {
 
     const logMessage = {
         embed: {
-            title: `WG TAG APPLICATION SUBMISSION BY ${data.user.username}`,
+            title: `${Community_Tag} APPLICATION SUBMISSION BY ${data.user.username}`,
             color: embedColor,
             fields: [
                 { name: 'Application Content', value: answers, inline: true },
@@ -256,7 +327,7 @@ const sendUserApplyForm = (msg, appName) => {
 	} else if (!msg.guild) {
 		msg.reply("This command can only be used in a guild.");
 	} else {
-		msg.reply("Usage : $apply [Application Type]. \n Application Open are WG-TAG \n Example Usage: $apply WG-TAG ");
+		msg.reply(`Usage : $apply [Application Type]. \n Application Open are ${Community_Tag}-TAG \n Example Usage: $apply ${Community_Tag}-TAG `);
 	}
     
     
@@ -306,41 +377,108 @@ const endApplicationFormSetup = (msg) => {
 	applicationQuestions = appNewForm;
 };
 
-const setApplicationSubmissions = (msg) => {
-	if (!msg.guild) {
+const setChannel = (msg,param) => {
+	if (!msg.guild) 
+	{
 		msg.reply("This command can only be used in a guild.");
 		return;
 	}
 
-	if (!msg.member.roles.find("name", "Admin")) {
+	if (!msg.member.roles.find("name", "Admin")) 
+	{
 		msg.reply("Only admins can do this.")
 		return;
 	}
 
-	userToSubmitApplicationsTo = msg.author;
-	msg.reply("Form submissions will now be sent to you.")
+	if(!param)
+	{
+		msg.channel.send("Usage: /setchannel [options] \n Avaliabe Options: reports apps adminchannel")
+		return;
+	}
+
+	if(param == "reports")
+	{
+	reportChannelID = msg.channel.id;
+	msg.channel.send("Ingame Reports will now be sent to this channel.")
+	}
+	if(param == "apps")
+	{
+	userToSubmitApplicationsTo = msg.channel.id;
+	msg.channel.send("Form submissions will now be sent to this channel.")
+	}
+	if(param == "adminchannel")
+	{
+	adminCmdsChannelID = msg.channel.id;
+	msg.channel.send("Admins can now use this channel for admin cmds.")
+	}
 };
 
 //______________________[APP-SYS END]___________________________________
 
+//_______________________[GENERAL UTILITY CMDS]______________________________
 
-//______________________[ SAMP CMDS]__________________________________
+const Clear_Messages = (msg,amount) => {
+
+	if (!msg.guild) return msg.reply("This command can only be used in a guild.");
+
+	if (!msg.member.roles.find("name", "Admin")) return msg.channel.send("This command can only be used by an admin.");
+
+	if (!amount) return msg.channel.send("Usage: /clear [no of messages to clear]");
+	
+	if (isNaN(amount)) return msg.reply('The amount parameter isn`t a number!'); 
+
+	if (amount > 100) return msg.reply('You can`t delete more than 100 messages at once!'); 
+	if (amount < 1) return msg.reply('You have to delete at least 1 message!'); 
+
+
+	if (!msg.channel.permissionsFor(msg.author).hasPermission("MANAGE_MESSAGES")) 
+	{
+        msg.channel.sendMessage("Sorry, you don't have the permission to execute the command \""+msg.content+"\"");
+        return;
+	} else if (!msg.channel.permissionsFor(client.user).hasPermission("MANAGE_MESSAGES")) 
+	{
+        msg.channel.sendMessage("Sorry, I don't have the permission to execute the command \""+msg.content+"\"");
+        return;
+    }
+
+    
+    if (msg.channel.type == 'text') {
+        msg.channel.fetchMessages({limit : amount})
+          .then(messages => {
+            msg.channel.bulkDelete(messages);
+            messagesDeleted = messages.array().length; // number of messages deleted
+
+            // Logging the number of messages deleted on both the channel and console.
+            msg.channel.sendMessage("Deletion of messages successful. Total messages deleted: "+messagesDeleted);
+            console.log('Deletion of messages successful. Total messages deleted: '+messagesDeleted)
+          })
+          .catch(err => {
+            console.log('Error while doing Bulk Delete');
+            console.log(err);
+        });
+    }
+	msg.channel.send(`No of messaes deleted ${amount}`)
+};
+//______________________[COMMAND PROCESSOR]__________________________________
+//@audit-ok Commands
+
 client.on('message', msg => {
 
+	//------------------------------[Medthod 1 For cmds]--------------------------------
     if (msg.content === 'dumbledore') 
     {
 
-        msg.reply('Hi Im Dumbledore WG Bot');
+        msg.reply(`Hi Im Dumbledore ${Community_Tag} Bot`);
 
     }
 
     if (msg.content === '/ip') 
     {
 
-        msg.reply('Server IP: 51.178.138.254:7777');
+        msg.reply(`Server IP: ${Samp_IP}`);
  
     }  
-    //------------------------------[APPLICATION STUFF]-------------------------------------------
+    //------------------------------[Medthod 2]-------------------------------------------
     if (msg.content.charAt(0) === botChar) {
 		const request = msg.content.substr(1);
 		let command, parameters = [];
@@ -373,19 +511,25 @@ client.on('message', msg => {
 			case "endsetup":
 				endApplicationFormSetup(msg);
 				break;
-			case "setsubmissions":
-				setApplicationSubmissions(msg);
+			case "setchannel":
+				setChannel(msg, parameters.join(" "));
 				break;
 			case "help":
-				msg.reply(`Available commands: \`\`\`${botChar}apply, ${botChar}players, ${botChar}ip, ${botChar}help\`\`\``);
+				msg.channel.send(`Available commands: \`\`\`${botChar}apply, ${botChar}players, ${botChar}ip, ${botChar}help\`\`\``);
 				break;
 			case "sban":
 				sBAN(msg, parameters.join(" "));
 				break; 
+			case "unban":
+				uBAN(msg, parameters.join(" "));
+				break; 
+			case "clear":
+					Clear_Messages(msg, parameters.join(" "));
+					break; 	
             case "ip":
                 break;
             case "players":
-                break;      
+				break;	
 			default:
 				msg.reply("I do not know this command.");
 		}
