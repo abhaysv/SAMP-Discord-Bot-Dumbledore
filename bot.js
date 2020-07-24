@@ -144,7 +144,7 @@ function GetPlayersOnline(msg)
 					fields: [
 						{ name: 'Server IP', value: response['address'], inline: true },
 						{ name: 'Players Online', value: response['online'], inline: true },
-						{ name: 'Max Players', value: '100', inline: true },
+						{ name: 'Max Players', value: response['maxplayers'], inline: true },
 					],
 				}
 			}
