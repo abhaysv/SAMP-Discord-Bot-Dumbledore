@@ -52,7 +52,20 @@ client.on('ready', () => {
 	
 
 });
-
+//-----------------------------[Debug]-----------------------------------
+function toggle_debug() 
+{
+	if (Bot_debug_mode) 
+	{
+	  Bot_debug_mode = false;
+	  console.log(`[DEBUG]: Debug Mode Disabled`);
+	} 
+	else 
+	{
+	  Bot_debug_mode = true;
+	  console.log(`[DEBUG]: Debug Mode Enabled`);
+	}
+}
 
 //________________________[Inagme Report Sync]_____________________________
 //@audit-info Report Sys
@@ -611,9 +624,12 @@ client.on('message', msg => {
 					setSampPort(msg, parameters.join(" "))
 					break;		 	
             case "ip":
-                break;
+					break;
+			case "debug":
+					toggle_debug()
+					break;				
             case "players":
-				break;	
+					break;	
 			default:
 				msg.reply("I do not know this command.");
 		}
