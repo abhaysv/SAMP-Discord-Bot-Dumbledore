@@ -631,7 +631,7 @@ client.on('message', msg => {
             case "players":
 					break;	
 			default:
-				msg.reply("I do not know this command.");
+				
 		}
 	} else {
 		if (msg.channel.type === "dm") {
