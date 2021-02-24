@@ -168,6 +168,59 @@ function GetPlayersOnline(msg)
 	})
 
 }
+//@audit-info Online Admins
+function get_online_admins(msg)
+{
+	permcheck = (msg.channel.id === adminCmdsChannelID) ? true : false;
+	if (permcheck) 
+    {
+		var sqlq;
+		
+		sqlq = "SELECT `id`,`Nick`,`Online`,`Admin` FROM `Accounts` WHERE `Admin` > 0 AND `Online` = 1 ORDER BY `Accounts`.`Admin` DESC";
+		
+
+		db.query(sqlq,
+		[], function(err,row) {
+		   if(row)
+		   { 	if(Bot_debug_mode)
+					console.log(sqlq);
+				if(row.length)
+				{
+					let i = 0, admins = "";
+
+					for (; i < row.length; i++) {
+						admins += `${row[i].Nick}: ${row[i].Admin}\n`;
+					}
+					
+	
+					const embedColor = 0xffff00;
+			
+					const logMessage = {
+						embed: {
+							title: `List of In-game Admins`,
+							color: embedColor,
+							fields: [
+								{ name: 'Admins', value: admins, inline: true },
+							],
+						}
+					}
+					client.channels.get(adminCmdsChannelID).send(logMessage);
+				}
+				else
+				client.channels.get(adminCmdsChannelID).send("No admins online !!!");   
+		   }
+		   else 
+			   console.log(`[ERROR]SQL Error(ADMcheck):${err}`);
+	   
+	   	});
+  
+	} else if (!permcheck) {
+		msg.reply("This command can only be used the admin bot channel.");
+	} else {
+		msg.channel.send("Usage : /sban [BAN-ID/InGame-Name].");
+	}
+	
+}
 //@audit-info BAN Functions
 function sBAN(msg,params)
 {
@@ -628,7 +681,7 @@ client.on('message', msg => {
 			case "debug":
 					toggle_debug()
 					break;				
-            case "players":
+            case "admins":
 					break;	
 			default:
 				
