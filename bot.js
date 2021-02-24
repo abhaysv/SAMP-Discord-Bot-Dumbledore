@@ -682,6 +682,7 @@ client.on('message', msg => {
 					toggle_debug()
 					break;				
             case "admins":
+					get_online_admins(msg)
 					break;	
 			default:
 				
