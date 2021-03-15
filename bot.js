@@ -176,7 +176,7 @@ function get_online_admins(msg)
     {
 		var sqlq;
 		
-		sqlq = "SELECT `id`,`Nick`,`Online`,`Admin` FROM `Accounts` WHERE `Admin` > 0 AND `Online` = 1 ORDER BY `Accounts`.`Admin` DESC";
+		sqlq = "SELECT `id`,`Nick`,`Online`,`Admin` FROM `Accounts` WHERE `Admin` > 0 AND `Online` = 1 AND `hidden_admin` = 0 ORDER BY `Accounts`.`Admin` DESC";
 		
 
 		db.query(sqlq,
