@@ -168,6 +168,58 @@ function GetPlayersOnline(msg)
 	})
 
 }
+//@audit-info Online Helpers
+function get_online_helpers(msg)
+{
+	permcheck = (msg.channel.id === adminCmdsChannelID) ? true : false;
+	if (permcheck) 
+    {
+		var sqlq;
+		
+		sqlq = "SELECT `id`,`Nick`,`Online`,`Helper` FROM `Accounts` WHERE `Helper` = 1 AND `Online` = 1";
+		
+
+		db.query(sqlq,
+		[], function(err,row) {
+		   if(row)
+		   { 	if(Bot_debug_mode)
+					console.log(sqlq);
+				if(row.length)
+				{
+					let i = 0, helpers = "";
+
+					for (; i < row.length; i++) {
+						helpers += `${row[i].Nick}: ${row[i].Helper}\n`;
+					}
+					
+	
+					const embedColor = 0xffff00;
+			
+					const logMessage = {
+						embed: {
+							title: `List of In-game Helpers`,
+							color: embedColor,
+							fields: [
+								{ name: 'Helper', value: helpers, inline: true },
+							],
+						}
+					}
+					client.channels.get(adminCmdsChannelID).send(logMessage);
+				}
+				else
+				client.channels.get(adminCmdsChannelID).send("No helpers online !!!");   
+		   }
+		   else 
+			   console.log(`[ERROR]SQL Error(HELPERcheck):${err}`);
+				});
+  
+	} else if (!permcheck) {
+		msg.reply("This command can only be used the admin bot channel.");
+	} else {
+		msg.channel.send("Usage : /sban [BAN-ID/InGame-Name].");
+	}
+	
+}
 //@audit-info Online Admins
 function get_online_admins(msg)
 {
@@ -683,7 +735,10 @@ client.on('message', msg => {
 					break;				
             case "admins":
 					get_online_admins(msg)
-					break;	
+					break;
+			case "helpers":
+				get_online_helpers(msg)
+				break;
 			default:
 				
 		}
