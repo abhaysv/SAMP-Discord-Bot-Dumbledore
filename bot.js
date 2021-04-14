@@ -106,7 +106,7 @@ function ReportSync()
 						],
 					}
 				};
-				client.channels.get(reportChannelID).send(logMessage);
+				client.channels.cache.get(reportChannelID).send(logMessage);
 			
 			}
 			if(!row.length && Bot_debug_mode)
@@ -204,10 +204,10 @@ function get_online_admins(msg)
 							],
 						}
 					}
-					client.channels.get(adminCmdsChannelID).send(logMessage);
+					client.channels.cache.get(adminCmdsChannelID).send(logMessage);
 				}
 				else
-				client.channels.get(adminCmdsChannelID).send("No admins online !!!");   
+				client.channels.cache.get(adminCmdsChannelID).send("No admins online !!!");   
 		   }
 		   else 
 			   console.log(`[ERROR]SQL Error(ADMcheck):${err}`);
@@ -255,10 +255,10 @@ function sBAN(msg,params)
 							],
 						}
 					}
-					client.channels.get(adminCmdsChannelID).send(logMessage);
+					client.channels.cache.get(adminCmdsChannelID).send(logMessage);
 				}
 				else
-				client.channels.get(adminCmdsChannelID).send("No ban found !!!");   
+				client.channels.cache.get(adminCmdsChannelID).send("No ban found !!!");   
 		   }
 		   else 
 			   console.log(`[ERROR]SQL Error(sBAN):${err}`);
@@ -296,7 +296,7 @@ function uBAN(msg,params)
 					
 				}
 				else
-				client.channels.get(adminCmdsChannelID).send("No ban found !!!");   
+				client.channels.cache.get(adminCmdsChannelID).send("No ban found !!!");   
 		   }
 		   else 
 			   console.log(`[ERROR]SQL Error(uBAN):${err}`);
@@ -322,7 +322,7 @@ function uBAN_Process(banid)
 		{ 	
 			if(Bot_debug_mode)
 				console.log(sqlq);
-			client.channels.get(adminCmdsChannelID).send(`The user has been unbanned`); 
+			client.channels.cache.get(adminCmdsChannelID).send(`The user has been unbanned`); 
 		}
 		else 
 			console.log(`[ERROR]SQL Error(uBAN_Process):${err}`);
@@ -353,7 +353,7 @@ const applicationFormCompleted = (data) => {
             ],
         }
     }
-    client.channels.get(userToSubmitApplicationsTo).send(logMessage);
+    client.channels.cache.get(userToSubmitApplicationsTo).send(logMessage);
 };
 
 const addUserToRole = (msg, roleName) => {
@@ -366,7 +366,7 @@ const addUserToRole = (msg, roleName) => {
 		const role = msg.guild.roles.find("name", roleName);
 
 		if (!role) {
-			msg.member.addRole(role);
+			msg.member.roles.add(role);
 
 			msg.reply(`Added you to role: '${roleName}'`);
 		} else {
@@ -466,11 +466,11 @@ const Clear_Messages = (msg,amount) => {
 	if (amount < 1) return msg.reply('You have to delete at least 1 message!'); 
 
 
-	if (!msg.channel.permissionsFor(msg.author).hasPermission("MANAGE_MESSAGES")) 
+	if (!msg.guild.member(msg.author).hasPermission("MANAGE_MESSAGES")) 
 	{
         msg.channel.sendMessage("Sorry, you don't have the permission to execute the command \""+msg.content+"\"");
         return;
-	} else if (!msg.channel.permissionsFor(client.user).hasPermission("MANAGE_MESSAGES")) 
+	} else if (!msg.guild.member(client.user).hasPermission("MANAGE_MESSAGES")) 
 	{
         msg.channel.sendMessage("Sorry, I don't have the permission to execute the command \""+msg.content+"\"");
         return;
@@ -478,7 +478,7 @@ const Clear_Messages = (msg,amount) => {
 
     
     if (msg.channel.type == 'text') {
-        msg.channel.fetchMessages({limit : amount})
+        msg.channel.messages.fetch({limit : amount})
           .then(messages => {
             msg.channel.bulkDelete(messages);
             messagesDeleted = messages.array().length;
